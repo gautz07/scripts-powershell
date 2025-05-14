@@ -8,7 +8,7 @@ if (-Not (Test-Path $SaRAcmd)) {
     exit 1
 }
 
-# Lancer le scénario OfficeScrub qui désinstalle Office 2016
+# Lancer le scénario OfficeScrub qui désinstalle Office 2016 de maniere automatique
 try {
     Write-Output " Lancement de la désinstallation de Microsoft Office 2016 via SaRA..."
     Start-Process -FilePath $SaRAcmd `
