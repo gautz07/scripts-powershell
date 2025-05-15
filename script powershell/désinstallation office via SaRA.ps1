@@ -4,7 +4,8 @@ Function rechercheOffice2016 ()
 {
     # Recherche Office 2016 installé via Windows Installer (MSI)
     $officeEntries = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                     HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* |
+                                     HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
+                                     HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Office\ClickToRun\Configuration\* |
         Where-Object { $_.DisplayName -like "*Microsoft Office*2016*"}
     if ($officeEntries) {return $true}
     else {return $false}
