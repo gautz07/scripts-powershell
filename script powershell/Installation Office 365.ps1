@@ -1,4 +1,32 @@
-﻿$odtExe = "$PSScriptRoot\officedeploymenttool_18730-20142.exe"
+﻿Function verificationOffice365() {
+    #fonction qui recherche des installations d'office 365
+    $paths = @(
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
+    )
+
+    $existingPaths = @()
+    foreach ($path in $paths) {
+        $basePath = ($path -split '\\\*')[0]
+        if (Test-Path $basePath) {
+            $existingPaths += $path
+        }
+    }
+
+    $officeEntries = foreach ($path in $existingPaths) {
+        Get-ItemProperty -Path $path -ErrorAction SilentlyContinue
+    }
+
+    $officeEntries = $officeEntries | Where-Object {
+        $_.DisplayName -match "Microsoft 365|Office 365|Office ProPlus|Microsoft Office.*365"
+    }
+    
+    if ($officeEntries) {return $true}
+    else {return $false}
+}
+
+$odtExe = "$PSScriptRoot\officedeploymenttool_18730-20142.exe"
 $configXmlPath = "$PSScriptRoot\Configuration.xml"
 
 Write-Host "`$PSScriptRoot = $PSScriptRoot"
@@ -15,7 +43,7 @@ if (Test-Path "$PSScriptRoot\setup.exe") {
 }
 
 
-# Copier le fichier Configuration.xml fourni par l'utilisateur
+# Copier le fichier Configuration.xml
 Write-Host "Copie du fichier Configuration.xml..."
 $xmlContent = @"
 <Configuration ID="5e9262a5-ddfb-4bc0-806e-142dde0463c7">
@@ -34,8 +62,15 @@ $xmlContent = @"
 "@
 $xmlContent | Set-Content -Encoding UTF8 -Path $configXmlPath
 
-# Lancer l'installation
+# Lanceement de l'installation
 Write-Host "Lancement de l'installation d'Office..."
 Start-Process -FilePath "$PSScriptRoot\setup.exe" -ArgumentList "/configure Configuration.xml" -Wait -NoNewWindow
 
 Write-Host " Installation terminée."
+
+# Vérification après installation
+if (verificationOffice365 -eq $true) {
+    Write-Output " Microsoft 365 a été installé avec succès."
+} else {
+    Write-Error " Échec : Microsoft 365 n'a pas été détecté après l'installation."
+}

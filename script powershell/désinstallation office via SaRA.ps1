@@ -1,5 +1,6 @@
 ﻿# Ce script désinstalle Microsoft Office 2016 à l'aide du scénario OfficeScrubScenario via SaRAcmd.exe
 Function verificationOffice365() {
+    #fonction qui recherche des installations d'office 2016
     $paths = @(
         "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
         "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
@@ -26,7 +27,7 @@ Function verificationOffice365() {
     else {return $false}
 }
 
-
+#si des installations d'office 2016 sont trouvées alors on les désinstalle 
 if (rechercheOffice2016 -eq $true) {
 
     $SaRAcmd = "$PSScriptRoot\SaRACmd\SaRAcmd.exe"
@@ -37,7 +38,7 @@ if (rechercheOffice2016 -eq $true) {
         exit 1
     }
 
-    # Lancer le scénario OfficeScrub qui désinstalle Office 2016 de maniere automatique
+    # Lancement le scénario OfficeScrub qui désinstalle Office 2016 de maniere automatique
 
     Write-Output " Lancement de la désinstallation de Microsoft Office 2016 via SaRA..."
     $processInfo = new-Object System.Diagnostics.ProcessStartInfo($SaRAcmd);

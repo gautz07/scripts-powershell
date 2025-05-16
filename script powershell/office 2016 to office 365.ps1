@@ -1,32 +1,33 @@
 ﻿# Ce script désinstalle Microsoft Office 2016 à l'aide du scénario OfficeScrubScenario via SaRAcmd.exe
 # Pour que ce script fonctionne, il doit etre placer dans le meme répertoire que l'executable SaRAcmd.exe
-Function rechercheOffice2016 ()
-{
-$paths = @(
-    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
-    "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
-    "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
-)
+Function rechercheOffice2016 () {
+    #fonction qui recherche des installations d'office 2016
+    $paths = @(
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
+    )
 
-$existingPaths = @()
-foreach ($path in $paths) {
-    $basePath = ($path -split '\\\*')[0]  # enlève le wildcard pour test
-    if (Test-Path $basePath) {
-        $existingPaths += $path
+    $existingPaths = @()
+    foreach ($path in $paths) {
+        $basePath = ($path -split '\\\*')[0]  # enlève le wildcard pour test
+        if (Test-Path $basePath) {
+            $existingPaths += $path
+        }
     }
-}
 
-$officeEntries = foreach ($path in $existingPaths) {
-    Get-ItemProperty -Path $path -ErrorAction SilentlyContinue
-}
+    $officeEntries = foreach ($path in $existingPaths) {
+        Get-ItemProperty -Path $path -ErrorAction SilentlyContinue
+    }
 
-$officeEntries = $officeEntries | Where-Object { $_.DisplayName -like "*Microsoft Office*2016*" }
+    $officeEntries = $officeEntries | Where-Object { $_.DisplayName -like "*Microsoft Office*2016*" }
 
-    if ($officeEntries) {return $true}
-    else {return $false}
+        if ($officeEntries) {return $true}
+        else {return $false}
 }
 
 Function verificationOffice365() {
+    #fonction qui recherche des installations d'office 365
     $paths = @(
         "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
         "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
@@ -53,7 +54,7 @@ Function verificationOffice365() {
     else {return $false}
 }
 
-
+#si des installations d'office 2016 sont trouvées alors on les désinstalle
 if (rechercheOffice2016 -eq $true) {
 
     $SaRAcmd = "$PSScriptRoot\SaRACmd\SaRAcmd.exe"
@@ -101,7 +102,7 @@ $configXmlPath = "$PSScriptRoot\office 365\Configuration.xml"
 Write-Host "`$PSScriptRoot = $PSScriptRoot"
 Write-Host "`$odtExe = $odtExe"
 Test-Path $odtExe
-# Extraire le contenu de l'exe
+# Extraire le contenu de l'ODT
 Write-Host "Extraction de l'Office Deployment Tool..."
 Start-Process -FilePath $odtExe -ArgumentList "/quiet /extract:`"$PSScriptRoot`"" -Wait -NoNewWindow
 if (Test-Path "$PSScriptRoot\setup.exe") {
@@ -112,7 +113,7 @@ if (Test-Path "$PSScriptRoot\setup.exe") {
 }
 
 
-# Copier le fichier Configuration.xml fourni par l'utilisateur
+# Copier le fichier Configuration.xml
 Write-Host "Copie du fichier Configuration.xml..."
 $xmlContent = @"
 <Configuration ID="5e9262a5-ddfb-4bc0-806e-142dde0463c7">
@@ -131,7 +132,7 @@ $xmlContent = @"
 "@
 $xmlContent | Set-Content -Encoding UTF8 -Path $configXmlPath
 
-# Lancer l'installation
+# Lanceement de l'installation
 Write-Host "Lancement de l'installation d'Office..."
 Start-Process -FilePath "$PSScriptRoot\setup.exe" -ArgumentList "/configure `"$configXmlPath`"" -Wait -NoNewWindow
 
