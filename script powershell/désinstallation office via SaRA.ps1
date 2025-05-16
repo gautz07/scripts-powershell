@@ -1,23 +1,39 @@
-﻿# Ce script désinstalle Microsoft Office 2016 (msi) à l'aide du scénario OfficeScrubScenario via SaRAcmd.exe
-# Pour que ce script fonctionne, il doit etre placer dans le meme répertoire que l'executable SaRAcmd.exe
-Function rechercheOffice2016 ()
-{
-    # Recherche Office 2016 installé via Windows Installer (MSI)
-    $officeEntries = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                     HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,
-                                     HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Office\ClickToRun\Configuration\* |
-        Where-Object { $_.DisplayName -like "*Microsoft Office*2016*"}
+﻿# Ce script désinstalle Microsoft Office 2016 à l'aide du scénario OfficeScrubScenario via SaRAcmd.exe
+Function verificationOffice365() {
+    $paths = @(
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
+    )
+
+    $existingPaths = @()
+    foreach ($path in $paths) {
+        $basePath = ($path -split '\\\*')[0]
+        if (Test-Path $basePath) {
+            $existingPaths += $path
+        }
+    }
+
+    $officeEntries = foreach ($path in $existingPaths) {
+        Get-ItemProperty -Path $path -ErrorAction SilentlyContinue
+    }
+
+    $officeEntries = $officeEntries | Where-Object {
+        $_.DisplayName -match "Microsoft 365|Office 365|Office ProPlus|Microsoft Office.*365"
+    }
+    
     if ($officeEntries) {return $true}
     else {return $false}
 }
 
+
 if (rechercheOffice2016 -eq $true) {
 
-    $SaRAcmd = "$PSScriptRoot\SaRAcmd.exe"
+    $SaRAcmd = "$PSScriptRoot\SaRACmd\SaRAcmd.exe"
 
     # Vérifie que l'exécutable existe à côté du script
     if (-Not (Test-Path $SaRAcmd)) {
-        Write-Error " SaRAcmd.exe introuvable dans le dossier du script. Placez-le au même endroit que ce script."
+        Write-Error " SaRAcmd.exe introuvable."
         exit 1
     }
 
@@ -48,5 +64,5 @@ if (rechercheOffice2016 -eq $true) {
         Write-Output "Office 2016 a été désinstallé avec succès."
     }
 }else {
-    Write-Output "Aucun Office 2016 (MSI) trouvé sur cette machine." 
+    Write-Output "Aucun Office 2016 trouvé sur cette machine." 
     }
