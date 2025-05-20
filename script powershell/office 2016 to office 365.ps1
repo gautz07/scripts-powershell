@@ -1,5 +1,4 @@
-﻿# Ce script désinstalle Microsoft Office 2016 à l'aide du scénario OfficeScrubScenario via SaRAcmd.exe
-# Pour que ce script fonctionne, il doit etre placer dans le meme répertoire que l'executable SaRAcmd.exe
+﻿# Ce script désinstalle Microsoft Office 2016 à l'aide du scénario OfficeScrubScenario via SaRAcmd.exe puis installe office 365
 Function rechercheOffice2016 () {
     #fonction qui recherche des installations d'office 2016
     $paths = @(
@@ -10,14 +9,14 @@ Function rechercheOffice2016 () {
 
     $existingPaths = @()
     foreach ($path in $paths) {
-        $basePath = ($path -split '\\\*')[0]  # enlève le wildcard pour test
+        $basePath = ($path -split '\\\*')[0]  
         if (Test-Path $basePath) {
             $existingPaths += $path
         }
     }
 
     $officeEntries = foreach ($path in $existingPaths) {
-        Get-ItemProperty -Path $path -ErrorAction SilentlyContinue
+        Get-ItemProperty -Path $path -ErrorAction SilentlyContinue #recupere les valeures présentes dans le registre 
     }
 
     $officeEntries = $officeEntries | Where-Object { $_.DisplayName -like "*Microsoft Office*2016*" }
@@ -59,13 +58,13 @@ if (rechercheOffice2016 -eq $true) {
 
     $SaRAcmd = "$PSScriptRoot\SaRACmd\SaRAcmd.exe"
 
-    # Vérifie que l'exécutable existe à côté du script
+    # Vérifie que l'exécutable est present dans le dossier "SaRACmd"
     if (-Not (Test-Path $SaRAcmd)) {
         Write-Error " SaRAcmd.exe introuvable."
         exit 1
     }
 
-    # Lancer le scénario OfficeScrub qui désinstalle Office 2016 de maniere automatique
+    # Lancement du scénario OfficeScrub qui désinstalle Office 2016 de maniere automatique
 
     Write-Output " Lancement de la désinstallation de Microsoft Office 2016 via SaRA..."
     $processInfo = new-Object System.Diagnostics.ProcessStartInfo($SaRAcmd);
@@ -102,7 +101,7 @@ $configXmlPath = "$PSScriptRoot\office 365\Configuration.xml"
 Write-Host "`$PSScriptRoot = $PSScriptRoot"
 Write-Host "`$odtExe = $odtExe"
 Test-Path $odtExe
-# Extraire le contenu de l'ODT
+# Extraction du contenu de l'ODT
 Write-Host "Extraction de l'Office Deployment Tool..."
 Start-Process -FilePath $odtExe -ArgumentList "/quiet /extract:`"$PSScriptRoot`"" -Wait -NoNewWindow
 if (Test-Path "$PSScriptRoot\setup.exe") {
@@ -113,7 +112,7 @@ if (Test-Path "$PSScriptRoot\setup.exe") {
 }
 
 
-# Copier le fichier Configuration.xml
+# Copie du fichier Configuration.xml
 Write-Host "Copie du fichier Configuration.xml..."
 $xmlContent = @"
 <Configuration ID="5e9262a5-ddfb-4bc0-806e-142dde0463c7">
