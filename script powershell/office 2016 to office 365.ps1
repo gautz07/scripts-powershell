@@ -98,9 +98,7 @@ if (rechercheOffice2016 -eq $true) {
 $odtExe = "$PSScriptRoot\office 365\officedeploymenttool_18730-20142.exe"
 $configXmlPath = "$PSScriptRoot\office 365\Configuration.xml"
 
-Write-Host "`$PSScriptRoot = $PSScriptRoot"
-Write-Host "`$odtExe = $odtExe"
-Test-Path $odtExe
+
 # Extraction du contenu de l'ODT
 Write-Host "Extraction de l'Office Deployment Tool..."
 Start-Process -FilePath $odtExe -ArgumentList "/quiet /extract:`"$PSScriptRoot`"" -Wait -NoNewWindow
