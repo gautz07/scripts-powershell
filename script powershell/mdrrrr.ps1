@@ -27,7 +27,7 @@ function detection_du_.NET {
 $test = detection_du_.NET
 write-output $test
 
-if ($test-eq $False){
+if (detection_du_.NET -eq $False){
     if (detection_du_.NET -eq $true){
         write-output "mdrrrrrrrrr"
     }

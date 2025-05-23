@@ -1,17 +1,19 @@
+#ce script doit etre placé dans le meme repertoire que le fichier iso de windows 
+#et que le dossier Sage Safe X3 Client 117 pou l'installation de SAGE 
 function detection_du_.NET {
     # Clé du registre pour .NET Framework 4.x
     $regKey = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
     $dismOutput = DISM /Online /Get-Features | Select-String "NetFx3"
 
     if (Test-Path $regKey) {
-        $release = (Get-ItemProperty -Path $regKey).Release
+        $release = (Get-ItemProperty -Path $regKey).Release #test la detection du .NET version 4.x
         if ($release) {
             Write-Host ".NET Framework version 4.x detectée"
             return $true
         } else {
             Write-Host "Aucun .NET Framework 4.x détecté."
         }
-    } elseif($dismOutput -match "NetFx3\s*:\s*Enabled") {
+    } elseif($dismOutput -match "NetFx3\s*:\s*Enabled") { #test la detection du .NET version 3.5
         Write-Host ".NET Framework 3.5 détecté."
         return $true
     }else{
@@ -42,7 +44,7 @@ if ($net -eq $false) {
 
     Write-Host "ISO monté sur le lecteur $driveLetter`:"
 
-    # Exécuter DISM pour installer .NET 3.5
+    # Exécuter DISM pour installer le .NET
     $sourcePath = "$driveLetter`:\sources\sxs"
     $cmd = "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess /Source:$sourcePath"
 
@@ -59,7 +61,17 @@ if ($net -eq $false) {
     Dismount-DiskImage -ImagePath $isoPath.FullName
     Write-Host "ISO démontée."
 }
+$issFile = "$PSScriptRoot\Sage Safe X3 Client 117\unattended.iss"
 
 Write-Output "lancement de l'installation de sage safe X3"
-Start-Process -FilePath "$PSScriptRoot\Sage Safe X3 Client 117\Install.cmd" -Wait -NoNewWindow
+Start-Process -FilePath "$PSScriptRoot\Sage Safe X3 Client 117\Install.cmd" -Wait -NoNewWindow # lancement du fichier CMD qui fait l'installation silencieuse 
+$installPath = Select-String -Path $issFile -Pattern 'szPath=' | ForEach-Object {
+    ($_ -split '=')[1].Trim()
+}
+Write-Host "Chemin d'installation : $installPath"
+
+Copy-Item -Path "$($PSScriptRoot)\Sage Safe X3 Client 117\Spécifique CDP Fareva\DLL a remplacer\X3scales.dll" -Destination $installPath -Force
+Copy-Item -Path "$($PSScriptRoot)\Sage Safe X3 Client 117\Spécifique CDP Fareva\DLL a remplacer\X3ScaFRA.dbm" -Destination "$($installPath)\lan" -Force
+Copy-Item -Path "$($PSScriptRoot)\Sage Safe X3 Client 117\Spécifique CDP Fareva\Pictogrames a ajouter" -Destination "$($installPath)\\Icons\Risquesecu_jpg" -Recurse -Force
+
 Write-Output "installation de sage safe X3 terminée"
