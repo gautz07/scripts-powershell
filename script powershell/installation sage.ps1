@@ -1,5 +1,5 @@
 #ce script doit etre placé dans le meme repertoire que le fichier iso de windows 
-#et que le dossier Sage Safe X3 Client 117 pou l'installation de SAGE 
+#et que le dossier "Sage Safe X3 Client 117" pour l'installation de SAGE 
 function detection_du_.NET {
     # Clé du registre pour .NET Framework 4.x
     $regKey = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
@@ -19,10 +19,8 @@ function detection_du_.NET {
     }else{
         return $false
     }
-
 }
 
-$dismOutput = DISM /Online /Get-Features | Select-String "NetFx3"
 $net = detection_du_.NET
 if ($net -eq $false) {
      Write-Host ".NET Framework 3.5 n'est pas installé. Montage de l'ISO en cours..."
@@ -52,14 +50,14 @@ if ($net -eq $false) {
     $process = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", $cmd -Wait -PassThru
 
     if ($process.ExitCode -eq 0) {
-        Write-Host ".NET Framework 3.5 installé avec succès !" -ForegroundColor Green
+        Write-Host ".NET Framework installé avec succès !" -ForegroundColor Green
     } else {
-        Write-Host "Échec de l'installation de .NET Framework 3.5 (code : $($process.ExitCode))" -ForegroundColor Red
+        Write-Host "Échec de l'installation de .NET Framework (code : $($process.ExitCode))" -ForegroundColor Red
     }
 
     # Nettoyage : démonter l'image
     Dismount-DiskImage -ImagePath $isoPath.FullName
-    Write-Host "ISO démontée."
+    Write-Host "ISO démonté."
 }
 $issFile = "$PSScriptRoot\Sage Safe X3 Client 117\unattended.iss"
 
@@ -73,5 +71,26 @@ Write-Host "Chemin d'installation : $installPath"
 Copy-Item -Path "$($PSScriptRoot)\Sage Safe X3 Client 117\Spécifique CDP Fareva\DLL a remplacer\X3scales.dll" -Destination $installPath -Force
 Copy-Item -Path "$($PSScriptRoot)\Sage Safe X3 Client 117\Spécifique CDP Fareva\DLL a remplacer\X3ScaFRA.dbm" -Destination "$($installPath)\lan" -Force
 Copy-Item -Path "$($PSScriptRoot)\Sage Safe X3 Client 117\Spécifique CDP Fareva\Pictogrames a ajouter" -Destination "$($installPath)\\Icons\Risquesecu_jpg" -Recurse -Force
+
+# Chemin vers le fichier .ttf
+$FontSource = "$($PSScriptRoot)\Sage Safe X3 Client 117\Spécifique CDP Fareva\Fonts\C39T36L.ttf"
+$FontName = "C39T36L.ttf"  # Nom du fichier
+
+Write-Host "installation de la police 'C39T36L'."
+# Dossier des polices système
+$FontsDir = "$env:WINDIR\Fonts"
+$FontDest = Join-Path -Path $FontsDir -ChildPath $FontName
+
+# Copier la police dans le dossier Fonts (si pas déjà là)
+If (!(Test-Path $FontDest)) {
+    Copy-Item -Path $FontSource -Destination $FontDest
+}
+
+# Enregistrement dans le Registre (nécessite admin)
+$RegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts"
+$FontRegName = "C39T36L (TrueType)"  # Nom affiché dans la liste de polices
+Set-ItemProperty -Path $RegPath -Name $FontRegName -Value $FontName
+
+Write-Host "Police installée avec succès."
 
 Write-Output "installation de sage safe X3 terminée"
