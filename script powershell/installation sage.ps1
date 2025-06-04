@@ -1,5 +1,4 @@
-#ce script doit etre placé dans le meme repertoire que le fichier iso de windows 
-#et que le dossier "Sage Safe X3 Client 117" pour l'installation de SAGE 
+#pour que le script fonctionne il faut que le dossier "Sage Safe X3 Client 117" pour l'installation de SAGE 
 function detection_du_.NET {
     # Clé du registre pour .NET Framework 4.x
     $regKey = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
@@ -23,27 +22,10 @@ function detection_du_.NET {
 
 $net = detection_du_.NET
 if ($net -eq $false) {
-     Write-Host ".NET Framework 3.5 n'est pas installé. Montage de l'ISO en cours..."
-    # Trouve le fichier ISO dans le même dossier que le script
-    $isoPath = Get-ChildItem -Path $PSScriptRoot -Filter *.iso | Select-Object -First 1
+     Write-Host ".NET Framework 3.5 n'est pas installé."
 
-    if (-not $isoPath) {
-        Write-Host "Aucun fichier ISO trouvé dans le dossier du script." -ForegroundColor Red
-        exit 1
-    }
-
-    # Monte l'image ISO
-    $mount = Mount-DiskImage -ImagePath $isoPath.FullName -PassThru
-    Start-Sleep -Seconds 2 # pause pour s'assurer du montage
-
-    # Obtenir la lettre du lecteur monté
-    $volume = Get-Volume -DiskImage $mount
-    $driveLetter = $volume.DriveLetter
-
-    Write-Host "ISO monté sur le lecteur $driveLetter`:"
-
-    # Exécuter DISM pour installer le .NET
-    $sourcePath = "$driveLetter`:\sources\sxs"
+    # Exécuter DISM pour installer le .NET 3.5
+    $sourcePath = "$PSScriptRoot\sxs"
     $cmd = "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess /Source:$sourcePath"
 
     Write-Host "Exécution de : $cmd"
@@ -55,9 +37,6 @@ if ($net -eq $false) {
         Write-Host "Échec de l'installation de .NET Framework (code : $($process.ExitCode))" -ForegroundColor Red
     }
 
-    # Nettoyage : démonter l'image
-    Dismount-DiskImage -ImagePath $isoPath.FullName
-    Write-Host "ISO démonté."
 }
 $issFile = "$PSScriptRoot\Sage Safe X3 Client 117\unattended.iss"
 
